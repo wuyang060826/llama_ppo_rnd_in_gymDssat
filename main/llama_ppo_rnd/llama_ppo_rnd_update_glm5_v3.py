@@ -7,7 +7,7 @@ PPO + Chinese-LLaMA-2 + gym-dssat 渐进式泛化增强版
 1. 渐进式增强策略 - 训练早期弱增强，后期逐渐增强
 2. 精简trick - 只保留最有效的测量噪声注入
 3. 增强强度衰减 - 根据训练进度动态调整
-4. 智能验证 - 使用集成模型在最佳时机验证
+4. 多种子验证 - 定期评估当前策略
 
 参考论文：
 《The New Agronomists: Language Models are Experts in Crop Management》
@@ -15,6 +15,9 @@ PPO + Chinese-LLaMA-2 + gym-dssat 渐进式泛化增强版
 - 关键发现：适度噪声反而能提升泛化，但过度噪声会损害性能
 """
 from reportlab.lib.units import inch
+import argparse
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import random
@@ -138,8 +141,8 @@ class PPOConfig:
     use_progressive_augmentation: bool = True
     
     # 增强开始和完全激活的训练进度
-    aug_start_progress: float = 0.4      # 30%进度后开始增强
-    aug_full_progress: float = 0.6       # 70%进度时增强完全激活
+    aug_start_progress: float = 0.4      # 40%进度后开始增强
+    aug_full_progress: float = 0.6       # 60%进度时增强完全激活
     
     # 测量噪声参数 (论文Table 6证明最有效)
     temperature_noise_max: float = 2.0       # 温度噪声最大值(°C)
@@ -155,8 +158,6 @@ class PPOConfig:
     early_stopping_min_delta: float = 20.0   # 增加最小改善阈值
     
     # 策略集成
-    ensemble_size: int = 5
-    ensemble_save_interval: int = 100
     
     # 验证设置
     n_validation_seeds: int = 3              # 减少验证种子数
@@ -177,9 +178,9 @@ class ProgressiveAugmentor:
     渐进式泛化增强模块
     
     核心思想：
-    1. 训练早期(0-30%): 几乎不增强，让模型充分学习基本策略
-    2. 训练中期(30-70%): 逐渐增加增强强度
-    3. 训练后期(70-100%): 完全增强，提升泛化能力
+    1. 训练早期(0-40%): 几乎不增强，让模型充分学习基本策略
+    2. 训练中期(40-60%): 逐渐增加增强强度
+    3. 训练后期(60-100%): 完全增强，提升泛化能力
     """
     
     def __init__(self, config):
@@ -556,43 +557,6 @@ class RNDModule:
 #                              策略集成
 # ============================================================================
 
-class PolicyEnsemble:
-    def __init__(self, ensemble_size: int = 5):
-        self.ensemble_size = ensemble_size
-        self.checkpoints = []
-        self.checkpoint_scores = []
-        self.best_checkpoint = None
-        self.best_score = float('-inf')
-    
-    def add_checkpoint(self, model_state: dict, score: float):
-        if score > self.best_score:
-            self.best_score = score
-            # 使用state_dict的浅拷贝而不是深度复制
-            self.best_checkpoint = {k: v.cpu().clone() if torch.is_tensor(v) else v 
-                                   for k, v in model_state.items()}
-        
-        # 只保存必要的信息，避免深度复制
-        checkpoint = {
-            'score': score,
-            'state': {k: v.cpu().clone() if torch.is_tensor(v) else v 
-                     for k, v in model_state.items()}
-        }
-        self.checkpoints.append(checkpoint)
-        self.checkpoint_scores.append(score)
-        
-        if len(self.checkpoints) > self.ensemble_size:
-            min_idx = np.argmin(self.checkpoint_scores)
-            self.checkpoints.pop(min_idx)
-            self.checkpoint_scores.pop(min_idx)
-    
-    def get_best_state(self) -> Optional[dict]:
-        return self.best_checkpoint
-
-
-# ============================================================================
-#                              早停机制
-# ============================================================================
-
 class EarlyStopping:
     def __init__(self, patience: int = 300, min_delta: float = 20.0):
         self.patience = patience
@@ -629,9 +593,9 @@ class EarlyStopping:
 # ============================================================================
 
 class MetricsLogger:
-    def __init__(self, output_prefix="llama_ppo_progressive"):
+    def __init__(self, output_dir, output_prefix="llama_ppo_progressive"):
         self.output_prefix = output_prefix
-        self.output_dir = f"/home/wuyang/results/llama_ppo_rnd_results/0417"
+        self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
         
         self.final_yields = []
@@ -1017,7 +981,6 @@ class PPOAgent:
         self.tokenizer = tokenizer
         
         self.augmentor = ProgressiveAugmentor(config)
-        self.ensemble = PolicyEnsemble(config.ensemble_size)
         
         self.embedder = LLaMAEmbedder(llama_model, config.projection_size).to(device)
         self.actor_critic = ActorCriticHead(config.projection_size, config.action_size, config.hidden_size).to(device)
@@ -1046,7 +1009,7 @@ class PPOAgent:
             return self.inference_cache[state_str]
         
         inputs = self.tokenize([state_str])
-        with torch.cuda.amp.autocast(enabled=self.config.use_bf16 or self.scaler.is_enabled()):
+        with torch.cuda.amp.autocast(enabled=self.config.use_bf16 or self.scaler.is_enabled(), dtype=torch.bfloat16 if self.config.use_bf16 else torch.float16):
             embed = self.embedder(inputs['input_ids'], inputs['attention_mask'])
         
         if len(self.inference_cache) > self.config.embedding_cache_size:
@@ -1069,7 +1032,7 @@ class PPOAgent:
         state_str = array2str(augmented_state)
         embedding = self.get_cached_embedding(state_str)
         
-        with torch.cuda.amp.autocast(enabled=self.config.use_bf16):
+        with torch.cuda.amp.autocast(enabled=self.config.use_bf16, dtype=torch.bfloat16):
             dist, value = self.actor_critic.get_action_value(embedding)
             action = dist.sample()
             log_prob = dist.log_prob(action)
@@ -1108,7 +1071,7 @@ class PPOAgent:
                 batch_strs = [all_state_strs[i] for i in indices]
                 inputs = self.tokenize(batch_strs)
                 
-                with torch.cuda.amp.autocast(enabled=self.config.use_bf16):
+                with torch.cuda.amp.autocast(enabled=self.config.use_bf16, dtype=torch.bfloat16):
                     embeddings = self.embedder(inputs['input_ids'], inputs['attention_mask'])
                     dist, new_values = self.actor_critic.get_action_value(embeddings)
                     
@@ -1148,7 +1111,7 @@ class PPOAgent:
         
         return total_loss / max(n_updates, 1)
     
-    def save_checkpoint(self, path, episode, score):
+    def save_checkpoint(self, path, episode):
         os.makedirs(path, exist_ok=True)
         state_dict = {
             'embedder': self.embedder.state_dict(),
@@ -1156,28 +1119,18 @@ class PPOAgent:
             'optimizer': self.optimizer.state_dict(),
         }
         torch.save(state_dict, os.path.join(path, f'model_ep{episode}.pth'))
-        self.ensemble.add_checkpoint(state_dict, score)
     
-    def load_best_model(self):
-        best_state = self.ensemble.get_best_state()
-        if best_state is not None:
-            self.embedder.load_state_dict(best_state['embedder'])
-            self.actor_critic.load_state_dict(best_state['actor_critic'])
-            return True
-        return False
-
 
 # ============================================================================
 #                              验证函数
 # ============================================================================
 
-def validate(agent, env, config, logger, episode):
+def validate(agent, config, logger, episode, args):
     print(f"\n{'='*50}")
     print(f"  Validation Phase - Episode {episode}")
     print(f"{'='*50}")
     
     agent.augmentor.set_mode(False)
-    agent.load_best_model()
     
     all_yields = []
     all_irrigations = []
@@ -1190,8 +1143,8 @@ def validate(agent, env, config, logger, episode):
     
     for val_seed in validation_seeds:
         env_args = {
-            'run_dssat_location': '/opt/dssat_pdi/run_dssat',
-            'log_saving_path': f'/home/wuyang/results/llama_ppo_rnd_results/logs/dssat-pdi-val-{val_seed}.log',
+            'run_dssat_location': str(args.dssat_runner),
+            'log_saving_path': str(args.output_dir / "logs" / f"dssat-val-{val_seed}.log"),
             'mode': 'all', 'seed': val_seed, 'random_weather': True
         }
         
@@ -1283,34 +1236,32 @@ def initialize_llama(model_path, use_bf16=True):
     print(f"   Precision: {torch_dtype}")
     return model, tokenizer
 
-def train_ppo():
+def train_ppo(args):
     print("=" * 70)
     print("PPO + LLaMA Training Started (Progressive Augmentation Version)")
     print("=" * 70)
     
     print("\n[Progressive Augmentation Strategy]")
-    print("  Phase 1 (0-30%):    No augmentation - learn basic policy")
-    print("  Phase 2 (30-70%):   Gradually increase augmentation")
-    print("  Phase 3 (70-100%):  Full augmentation - maximize generalization")
+    print("  Phase 1 (0-40%):    No augmentation - learn basic policy")
+    print("  Phase 2 (40-60%):   Gradually increase augmentation")
+    print("  Phase 3 (60-100%):  Full augmentation - maximize generalization")
 
-    model_path = '/home/wuyang/models/chinese-llama-2-1.3b'
-    llama_model, tokenizer = initialize_llama(model_path, config.use_bf16)
+    llama_model, tokenizer = initialize_llama(args.model, config.use_bf16)
     
     env_args = {
-        'run_dssat_location': '/opt/dssat_pdi/run_dssat',
-        'log_saving_path': '/home/wuyang/results/llama_ppo_rnd_results/logs/dssat-pdi.log',
+        'run_dssat_location': str(args.dssat_runner),
+        'log_saving_path': str(args.output_dir / "logs" / "dssat-train.log"),
         'mode': 'all', 'seed': 123456, 'random_weather': True
     }
     env = gym.make('gym_dssat_pdi:GymDssatPdi-v0', **env_args)
     
     agent = PPOAgent(llama_model, tokenizer, config)
-    logger = MetricsLogger(config.output_prefix)
+    logger = MetricsLogger(args.output_dir, config.output_prefix)
     early_stopping = EarlyStopping(
         patience=config.early_stopping_patience,
         min_delta=config.early_stopping_min_delta
     )
     
-    scores, yields, best_score = [], [], float('-inf')
     
     print(f"\nStarting training ({config.n_episodes} episodes)")
     pbar = tqdm(range(1, config.n_episodes + 1), desc="Training", unit="episode", ncols=100)
@@ -1372,8 +1323,6 @@ def train_ppo():
         logger.record_episode(episode, ep_yield, w_amount, n_amount, 
                              episode_reward, steps, exploration_coverage, aug_info['aug_strength'])
         
-        scores.append(episode_reward)
-        yields.append(ep_yield)
         
         pbar.set_postfix({
             'reward': f'{episode_reward:.0f}',
@@ -1398,17 +1347,16 @@ def train_ppo():
         
         # 每100轮验证
         if episode % 100 == 0:
-            val_metrics = validate(agent, env, config, logger, episode)
+            val_metrics = validate(agent, config, logger, episode, args)
             if val_metrics and early_stopping(val_metrics['episode_reward'], episode):
                 print("\n[Early Stopping] Training stopped")
                 break
         
         # 保存最佳
         if  episode > 880 and episode_reward > 1100 and ep_yield > 11000:
-            best_score = episode_reward
             agent.save_checkpoint(
-                f'/home/wuyang/checkpoints/llama_ppo_rnd_checkpoints/best_0417', 
-                episode, episode_reward
+                args.output_dir / "checkpoints",
+                episode
             )
     
     pbar.close()
@@ -1420,9 +1368,9 @@ def train_ppo():
     
     # 最终验证
     print("\n[Final Validation]")
-    validate(agent, env, config, logger, config.n_episodes)
+    validate(agent, config, logger, episode, args)
     
-    logger.print_metrics(config.n_episodes, phase="Final")
+    logger.print_metrics(episode, phase="Final")
     logger.save_all_results()
     
     env.close()
@@ -1431,6 +1379,22 @@ def train_ppo():
 
 
 if __name__ == "__main__":
-    os.makedirs(f'/home/wuyang/checkpoints/llama_ppo_rnd_checkpoints', exist_ok=True)
-    os.makedirs('/home/wuyang/results/llama_ppo_rnd_results/logs', exist_ok=True)
-    train_ppo()
+    parser = argparse.ArgumentParser(description="Train the LLaMA-PPO-RND Gym-DSSAT agent.")
+    parser.add_argument("--model", required=True, help="Hugging Face model ID or local model directory")
+    parser.add_argument("--dssat-runner", type=Path, default=Path("/opt/dssat_pdi/run_dssat"))
+    parser.add_argument("--output-dir", type=Path, required=True, help="New directory for this run")
+    parser.add_argument("--episodes", type=int, default=config.n_episodes)
+    args = parser.parse_args()
+    if args.episodes < 1:
+        parser.error("--episodes must be positive")
+    if not args.dssat_runner.is_file() or not os.access(args.dssat_runner, os.X_OK):
+        parser.error(f"DSSAT runner is not executable: {args.dssat_runner}")
+    if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
+        parser.error("Training requires a CUDA GPU with BF16 support")
+    args.output_dir = args.output_dir.resolve()
+    try:
+        (args.output_dir / "logs").mkdir(parents=True, exist_ok=False)
+    except FileExistsError:
+        parser.error("Choose a fresh output directory for this run")
+    config.n_episodes = args.episodes
+    train_ppo(args)
