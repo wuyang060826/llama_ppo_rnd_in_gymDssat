@@ -46,3 +46,12 @@ Open http://localhost:8000/fieldlab/. The Python builder converts the archived C
 | 18 | Interpretation and limitations can be expanded |
 | 19 | Mobile content stays within viewport |
 | 20 | Reduced motion is respected and browser has no uncaught errors |
+
+## Code boundaries
+
+- `scripts/fieldlab_data.py` is the shared CSV validation and loading layer for demos and generated assets.
+- `scripts/build_fieldlab.py` creates the offline browser bundle. `scripts/plot_fieldlab.py` creates the README figure with Matplotlib.
+- `docs/index.html` is the Pages root entry. `docs/fieldlab/` contains the browser UI.
+- `main/` holds research implementations. `test/val_proj/` contains historical evaluation scripts and outputs. When running automated tests, target a dedicated test file instead of collecting legacy experiment scripts.
+
+The README presents a chart, exact values, and a collapsible reproduction path, following the data and reproducibility emphasis of [Open RL Benchmark](https://github.com/openrlbenchmark/openrlbenchmark) and [CleanRL](https://github.com/vwxyzjn/cleanrl).

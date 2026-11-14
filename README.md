@@ -6,17 +6,35 @@ An agricultural reinforcement learning research project for learning **irrigatio
 
 ## Results demo
 
-[Open the interactive FieldLab explorer](https://wuyang060826.github.io/llama_ppo_rnd_in_gymDssat/fieldlab/) to compare two checkpoints, switch metrics, inspect individual repeats, or export the selected rows. See the [prototype development guide](docs/fieldlab/DEVELOPMENT.md) for offline use and data regeneration.
+**Can a crop policy use less water and maintain yield?** Compare two checkpoints from the same archived Gym-DSSAT evaluation batch. The repository contains **129 checkpoints and 1,290 evaluations**.
 
-Run this from the repository root with Python 3.9+. It summarizes the archived checkpoint evaluations with no installed packages, model download, GPU, or simulator.
+![Mean harvest yield, irrigation, and nitrogen for checkpoint 949 and checkpoint 953](docs/fieldlab/readme-comparison.png)
+
+| Mean across 10 evaluations per checkpoint | ep949 | ep953 | Difference (953 − 949) |
+| --- | ---: | ---: | ---: |
+| Harvest yield (kg/ha) | 11,155.11 | 11,172.26 | +17.14 |
+| Irrigation (mm) | 275.40 | 270.00 | −5.40 |
+| Nitrogen (kg/ha) | 224.00 | 248.00 | +24.00 |
+| Reward (score) | 1,282.61 | 1,272.30 | −10.31 |
+
+In this batch, ep953 used less water and more nitrogen, with nearly unchanged mean yield and lower mean reward. Differences are computed before rounding.
+
+<details>
+<summary>Open the full validation figure and replication command</summary>
+
+![Archived batch checkpoint validation comparison](test/val_proj/batch_val_results_0417/validation_comparison_20260419_053122.png)
+
+Run the following with Python 3.9+ to summarize the [archived CSV](test/val_proj/batch_val_results_0417/batch_validation_results_20260419_053122.csv) without additional dependencies.
 
 ```bash
 python scripts/demo_results.py
 ```
 
-![Archived batch checkpoint validation comparison](test/val_proj/batch_val_results_0417/validation_comparison_20260419_053122.png)
+These are historical simulator observations. Repeat numbers do not establish paired weather seeds. An evaluation against matched baselines and held-out seeds is needed to assess comparative performance.
 
-The figure and [raw CSV](test/val_proj/batch_val_results_0417/batch_validation_results_20260419_053122.csv) are archived experiment outputs. The demo averages each metric over the recorded repeats for each checkpoint. These data support inspection of checkpoint behavior in this batch. A matched evaluation across baseline methods and held-out seeds is needed to establish comparative performance.
+</details>
+
+[Compare any two checkpoints in FieldLab](https://wuyang060826.github.io/llama_ppo_rnd_in_gymDssat/fieldlab/) · [Prototype source and development guide](docs/fieldlab/DEVELOPMENT.md)
 
 ## Method
 

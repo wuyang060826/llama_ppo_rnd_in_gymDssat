@@ -1,31 +1,22 @@
 """Summarize the archived checkpoint evaluations using the Python standard library."""
 
-import csv
-from collections import defaultdict
-from pathlib import Path
 from statistics import mean
 
-
-RESULTS = (
-    Path(__file__).resolve().parents[1]
-    / "test/val_proj/batch_val_results_0417/batch_validation_results_20260419_053122.csv"
-)
+from fieldlab_data import load_archive
 
 
 def main():
-    by_checkpoint = defaultdict(list)
-    with RESULTS.open(encoding="utf-8", newline="") as source:
-        for row in csv.DictReader(source):
-            by_checkpoint[row["checkpoint"]].append(row)
+    runs = load_archive()
 
-    print(f"Archived validation: {len(by_checkpoint)} checkpoints, "
-          f"{sum(map(len, by_checkpoint.values()))} evaluations")
+    print(f"Archived validation: {len(runs)} checkpoints, "
+          f"{sum(len(run['rows']) for run in runs)} evaluations")
     print()
     print("| Checkpoint | Runs | Mean reward | Mean yield | Mean irrigation | Mean fertilizer |")
     print("| --- | ---: | ---: | ---: | ---: | ---: |")
-    for checkpoint, rows in by_checkpoint.items():
+    for run in runs:
+        checkpoint, rows = run["id"], run["rows"]
         metrics = [
-            mean(float(row[metric]) for row in rows)
+            mean(row[metric] for row in rows)
             for metric in ("reward", "yield", "irr", "fert")
         ]
         values = " | ".join(f"{value:,.2f}" for value in metrics)
