@@ -111,3 +111,13 @@ Observed gap — Malformed CSV rows produced cryptic exceptions or ambiguous fie
 Change — Validate CSV shape, identifiers, finite values, and nonnegative agricultural metrics.
 
 Verification — All 1290 archived rows pass; build output remains unchanged.
+
+## Round 12
+
+Reference [GitHub project](https://github.com/frictionlessdata/frictionless-py).
+
+Observed gap — Browser trusted the generated bundle and mixed statistics with DOM rendering.
+
+Change — Extract validated browser data and CSV operations into model.js.
+
+Verification — Schema rejects duplicate IDs and repeats, missing or non-finite metrics; syntax checks pass.

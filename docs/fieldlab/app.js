@@ -1,17 +1,10 @@
 "use strict";
 
 const byId = (id) => document.getElementById(id);
-const metrics = {
-  reward: ["Reward", "score"],
-  yield: ["Harvest yield", "kg/ha"],
-  irr: ["Irrigation", "mm"],
-  fert: ["Nitrogen", "kg/ha"],
-  wue: ["Water use efficiency", "kg/ha/mm"],
-  nue: ["Nitrogen use efficiency", "kg/kg"],
-};
+const metrics = FieldLab.metrics;
 const format = new Intl.NumberFormat("en", {maximumFractionDigits: 2});
 const number = (value) => value == null ? "—" : format.format(value);
-const mean = (rows, key) => rows.reduce((sum, row) => sum + row[key], 0) / rows.length;
+const mean = FieldLab.mean;
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -220,11 +213,7 @@ function start(data) {
     render();
   });
   byId("export").addEventListener("click", () => {
-    const csvCell = (value) => '"' + String(value).replaceAll('"', '""') + '"';
-    const keys = Object.keys(metrics);
-    const lines = [["side", "checkpoint", "repeat", ...keys], ...comparison(read()).flatMap(({id, label, rows}) =>
-      rows.map((row) => [label, id, row.repeat, ...keys.map((key) => row[key])]))];
-    const url = URL.createObjectURL(new Blob([lines.map((line) => line.map(csvCell).join(",")).join("\r\n") + "\r\n"], {type:"text/csv;charset=utf-8"}));
+    const url = URL.createObjectURL(new Blob([FieldLab.toCsv(comparison(read()))], {type:"text/csv;charset=utf-8"}));
     const link = element("a");
     link.href = url;
     const state = read();
@@ -241,7 +230,7 @@ function start(data) {
 }
 
 try {
-  if (!window.FIELDLAB_DATA?.length) throw new Error("Evaluation data is unavailable");
+  FieldLab.validate(window.FIELDLAB_DATA);
   start(window.FIELDLAB_DATA);
 } catch (error) {
   byId("workspace").hidden = true;
