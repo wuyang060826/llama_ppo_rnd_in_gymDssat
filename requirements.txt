@@ -1,0 +1,9 @@
+# Install PyTorch with CUDA support and the Gym-DSSAT fork separately.
+gym==0.21.0
+transformers==4.36.0
+numpy<2
+pandas
+openpyxl
+matplotlib
+reportlab
+tqdm

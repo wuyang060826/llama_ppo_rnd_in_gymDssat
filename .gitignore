@@ -78,3 +78,6 @@ venv/
 *.xlsx
 *.pdf
 *.docx
+
+# Local experiment outputs
+/runs/
