@@ -121,3 +121,13 @@ Observed gap — Browser trusted the generated bundle and mixed statistics with 
 Change — Extract validated browser data and CSV operations into model.js.
 
 Verification — Schema rejects duplicate IDs and repeats, missing or non-finite metrics; syntax checks pass.
+
+## Round 13
+
+Reference [GitHub project](https://github.com/iterative/dvc).
+
+Observed gap — Published data had no content fingerprint or stale-output check.
+
+Change — Generate an archive manifest and support deterministic verification.
+
+Verification — Rebuild followed by --check passes against the CSV checksum and exact serialized bundle.
