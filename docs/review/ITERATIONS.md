@@ -131,3 +131,13 @@ Observed gap — Published data had no content fingerprint or stale-output check
 Change — Generate an archive manifest and support deterministic verification.
 
 Verification — Rebuild followed by --check passes against the CSV checksum and exact serialized bundle.
+
+## Round 14
+
+Reference [GitHub project](https://github.com/pytest-dev/pytest).
+
+Observed gap — Schema and export changes lacked regression coverage for malformed inputs.
+
+Change — Add focused data integrity and CSV export regression tests.
+
+Verification — Five Python tests and three Node tests pass, including non-finite metrics, duplicate rows, counts, and export precision.
