@@ -134,6 +134,11 @@ function start(data) {
       history.replaceState(null, "", url);
     }
 
+    byId("comparison-note").textContent = state.a === state.b ?
+      "Both selections refer to the same checkpoint. Choose another checkpoint to compare policies." :
+      `A · ${state.a} compared with B · ${state.b}`;
+    byId("metric-stats").replaceChildren(...series.map(({id, label: side, rows}) =>
+      element("p", `${side} · ${id} — mean ${number(mean(rows, state.metric))} ${unit}`)));
     byId("summary").replaceChildren(...["yield", "irr", "fert"].map((key) => {
       const [name, units] = metrics[key];
       const averages = series.map(({rows}) => mean(rows, key));

@@ -21,3 +21,13 @@ Observed gap — Visitors cannot immediately identify the evaluation batch or ch
 Change — Expose archive date and simulator provenance beside the comparison.
 
 Verification — Date checked against source CSV filename and all checkpoint repeat counts checked during archive generation.
+
+## Round 3
+
+Reference [GitHub project](https://github.com/mlflow/mlflow).
+
+Observed gap — Metric switching left all visible summary cards fixed on agricultural inputs.
+
+Change — Show selected-metric means and explicit same-checkpoint feedback.
+
+Verification — JavaScript syntax passes; mean uses the same selected rows as the repeat table.
