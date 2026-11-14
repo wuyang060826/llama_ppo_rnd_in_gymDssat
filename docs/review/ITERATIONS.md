@@ -1,6 +1,6 @@
 # FieldLab and research repository review
 
-Twenty focused review rounds, performed in order. Each entry records a new reference project, the observed gap, the implementation, and its verification. References informed design choices. Source code was implemented in this repository. Browser verification and scientific runtime limits are reported in DEVELOPMENT.md.
+Twenty-one focused review rounds, performed in order. Each entry records a new reference project, the observed gap, the implementation, and its verification. References informed design choices. Source code was implemented in this repository. Browser verification and scientific runtime limits are reported in DEVELOPMENT.md.
 
 ## Round 1
 
@@ -215,3 +215,7 @@ Verification — Thirteen Python tests pass, including schedule boundaries and c
 ## CI follow-up
 
 The first hosted run exposed an environment dependency. The moving Ubuntu image had advanced to 26.04, where setup-python could not provision Python 3.9. The workflow now selects Ubuntu 22.04 explicitly and lets both matrix jobs finish independently.
+
+## Browser follow-up
+
+Live Chrome interaction verified checkpoint search, zero-match preservation, all six metrics, same-policy feedback, swap, reset, repeat highlighting, reload persistence, and CSV download. Inspection exposed stale selected-option wording after changing a filtered choice. The filter now recomputes after selection changes, and download feedback is next to the download button.

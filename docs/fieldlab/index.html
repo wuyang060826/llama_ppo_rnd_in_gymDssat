@@ -39,13 +39,12 @@
 <button id="swap" type="button">Swap A / B</button>
 <button id="reset" type="button">Reset</button>
 </div>
-<p id="status" class="feedback" role="status"></p>
 <p id="comparison-note" role="status"></p>
 <div id="summary" class="summary"></div>
 <div id="metric-stats" class="metric-stats"></div>
 <div class="panels">
-<article class="panel"><h3 id="chartTitle"></h3><p class="muted">Each point is one archived repeat. Repeat numbers identify independent evaluations within each checkpoint.</p><label class="repeat-label">Inspect repeat<select id="repeat"></select></label><p id="point-detail" role="status"></p><div id="chart"></div><div id="legend"></div></article>
-<article class="panel"><h3>Repeat-level data</h3><p class="muted">Compare the selected metric across the recorded repeats.</p><div class="table-wrap"><table><thead id="columns"></thead><tbody id="observations"></tbody></table></div><button id="export" type="button">Download selected CSV</button></article>
+<article class="panel"><h3 id="chartTitle"></h3><p class="muted">Each point is one archived repeat. Repeat numbers identify separate evaluations within each checkpoint.</p><label class="repeat-label">Inspect repeat<select id="repeat"></select></label><p id="point-detail" role="status"></p><div id="chart"></div><div id="legend"></div></article>
+<article class="panel"><h3>Repeat-level data</h3><p class="muted">Compare the selected metric across the recorded repeats.</p><div class="table-wrap"><table><thead id="columns"></thead><tbody id="observations"></tbody></table></div><button id="export" type="button">Download selected CSV</button><p id="status" class="feedback" role="status"></p></article>
 </div>
 <details><summary>How to read this comparison</summary><p>Cards show arithmetic means. Differences use B minus A. Repeat numbers are archival labels and do not establish paired weather seeds. Checkpoint IDs refer to saved training episodes. The default pair illustrates a trade-off in this batch. Baseline comparisons, confidence intervals, and field validation require additional evidence.</p></details>
 </div>

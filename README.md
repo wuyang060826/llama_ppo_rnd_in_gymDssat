@@ -109,7 +109,7 @@ node --test tests/fieldlab.test.cjs
 python scripts/build_fieldlab.py --check
 ```
 
-Python regressions require NumPy and PyTorch. The Node tests use the built-in test runner in Node 20+. CI checks Python 3.9 and 3.12 using CPU PyTorch. See the [20-round review record](docs/review/ITERATIONS.md) and [development guide](docs/fieldlab/DEVELOPMENT.md) for design references and verification scope.
+Python regressions require NumPy and PyTorch. The Node tests use the built-in test runner in Node 20+. CI checks Python 3.9 and 3.12 using CPU PyTorch. See the [21-round review record](docs/review/ITERATIONS.md) and [development guide](docs/fieldlab/DEVELOPMENT.md) for design references and verification scope.
 
 The active training script now fails explicitly when an episode hits its step limit before termination, preventing incomplete episodes from entering reported harvest metrics. The numerical fixes require fresh experiments before comparing new results with the historical archive.
 

@@ -112,6 +112,7 @@ function start(data) {
   };
 
   function render() {
+    byId("status").textContent = "";
     const state = read();
     const series = comparison(state);
     const [label, unit] = metrics[state.metric];
@@ -167,6 +168,7 @@ function start(data) {
     const selected = byId("repeat").value;
     options(byId("repeat"), [["", "All repeats"], ...repeats.map((repeat) => [String(repeat), String(repeat)])],
       repeats.includes(Number(selected)) ? selected : "");
+    filterCheckpoints();
     inspectRepeat();
   }
 
@@ -184,17 +186,18 @@ function start(data) {
   }
   byId("repeat").addEventListener("change", inspectRepeat);
 
-  byId("search").addEventListener("input", () => {
+  function filterCheckpoints() {
     const query = byId("search").value.trim().toLowerCase();
     const matches = checkpoints.filter(([id]) => id.toLowerCase().includes(query));
     for (const key of ["a", "b"]) {
       const current = controls[key].value;
-      const entries = matches.some(([id]) => id === current) ? matches : [[current, current + " (selected)"], ...matches];
+      const entries = matches.some(([id]) => id === current) ? matches : [[current, current], ...matches];
       options(controls[key], entries, current);
     }
     byId("search-result").textContent = query ?
       `${matches.length} matching checkpoints. Current selections stay available.` : "";
-  });
+  }
+  byId("search").addEventListener("input", filterCheckpoints);
   for (const select of Object.values(controls)) select.addEventListener("change", render);
   byId("swap").addEventListener("click", () => {
     const state = read();
