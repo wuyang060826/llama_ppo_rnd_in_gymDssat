@@ -101,3 +101,13 @@ Observed gap — Means alone concealed the spread of repeated evaluations.
 Change — Expose observed metric ranges alongside selected means.
 
 Verification — Ranges are derived from selected raw repeats; no confidence or significance claim is inferred.
+
+## Round 11
+
+Reference [GitHub project](https://github.com/pandas-dev/pandas).
+
+Observed gap — Malformed CSV rows produced cryptic exceptions or ambiguous field assignments.
+
+Change — Validate CSV shape, identifiers, finite values, and nonnegative agricultural metrics.
+
+Verification — All 1290 archived rows pass; build output remains unchanged.
