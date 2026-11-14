@@ -219,3 +219,5 @@ The first hosted run exposed an environment dependency. The moving Ubuntu image 
 ## Browser follow-up
 
 Live Chrome interaction verified checkpoint search, zero-match preservation, all six metrics, same-policy feedback, swap, reset, repeat highlighting, reload persistence, and CSV download. Inspection exposed stale selected-option wording after changing a filtered choice. The filter now recomputes after selection changes, and download feedback is next to the download button.
+
+Live revalidation also exposed cached JavaScript after a Pages deployment. The build command now fingerprints CSS and JavaScript URLs from their content, and --check detects stale fingerprints. This closes the gap between a successful Pages build and the code a returning visitor receives.
