@@ -141,3 +141,13 @@ Observed gap — Schema and export changes lacked regression coverage for malfor
 Change — Add focused data integrity and CSV export regression tests.
 
 Verification — Five Python tests and three Node tests pass, including non-finite metrics, duplicate rows, counts, and export precision.
+
+## Round 15
+
+Reference [GitHub project](https://github.com/DLR-RM/stable-baselines3).
+
+Observed gap — Singleton rollouts yielded NaN normalization and cosine schedules rebounded past the horizon.
+
+Change — Extract training numerics and fix singleton normalization and learning-rate clamping.
+
+Verification — Four CPU tests pass for terminal masking, singleton finite values, empty buffers, and schedule floor.
