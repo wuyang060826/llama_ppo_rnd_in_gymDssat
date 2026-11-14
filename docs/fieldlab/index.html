@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#122921">
+<meta name="description" content="Explore archived irrigation and nitrogen policy evaluations from LLaMA-PPO-RND for Gym-DSSAT.">
+<title>FieldLab · Crop policy explorer</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="data.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<a class="skip" href="#explore">Skip to explorer</a>
+<header>
+<nav aria-label="Main navigation"><a class="brand" href="#">◈ FieldLab</a><div><a href="#explore">Explore</a><a href="#method">Method</a><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat">GitHub ↗</a></div></nav>
+<div class="hero">
+<p class="eyebrow">GYM-DSSAT RESEARCH DEMO</p>
+<h1>How does a crop<br>policy <em>trade off?</em></h1>
+<p>Compare how learned policies balance harvest yield, irrigation, and nitrogen across archived simulator evaluations.</p>
+<a class="primary" href="#explore">Explore checkpoints <span aria-hidden="true">↓</span></a>
+</div>
+</header>
+<main>
+<section id="explore" aria-labelledby="explore-title">
+<div class="section-head"><div><p class="eyebrow">ARCHIVED EVALUATIONS</p><h2 id="explore-title">Compare policies</h2></div><p id="dataset"></p></div>
+<noscript><p>Enable JavaScript to use the explorer. The repository also offers a Python results demo.</p></noscript>
+<p id="error" role="alert"></p>
+<div id="workspace" hidden>
+<div class="controls">
+<label>Checkpoint A<select id="a"></select></label>
+<label>Checkpoint B<select id="b"></select></label>
+<label>Chart metric<select id="metric"></select></label>
+<button id="swap" type="button">Swap A / B</button>
+<button id="reset" type="button">Reset</button>
+</div>
+<p id="status" class="sr" role="status"></p>
+<div id="summary" class="summary"></div>
+<div class="panels">
+<article class="panel"><h3 id="chartTitle"></h3><p class="muted">One point per archived repeat. Lines connect points in repeat-number order.</p><div id="chart"></div><div id="legend"></div></article>
+<article class="panel"><h3>Repeat-level data</h3><p class="muted">Compare the selected metric across the recorded repeats.</p><div class="table-wrap"><table><thead id="columns"></thead><tbody id="observations"></tbody></table></div><button id="export" type="button">Download selected CSV</button></article>
+</div>
+<details><summary>How to read this comparison</summary><p>Cards show arithmetic means. Differences use B minus A. Repeat numbers are archival labels and do not establish paired weather seeds. The selected checkpoints illustrate a trade-off in this batch. Baseline comparisons, confidence intervals, and field validation require additional evidence.</p></details>
+</div>
+</section>
+<section id="method" aria-labelledby="method-title">
+<p class="eyebrow">EXPERIMENT DESIGN</p><h2 id="method-title">From observation to action</h2>
+<ol class="method"><li><h3>Observe</h3><p>Gym-DSSAT simulates crop growth and supplies numerical field observations.</p></li><li><h3>Encode</h3><p>LLaMA encodes observations serialized as text for the PPO actor–critic.</p></li><li><h3>Act</h3><p>The policy selects irrigation and nitrogen levels. RND adds an exploration reward during training.</p></li></ol>
+<a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/README.md#training">Read the training instructions ↗</a>
+</section>
+</main>
+<footer><span>FieldLab · LLaMA-PPO-RND for Gym-DSSAT</span><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/test/val_proj/batch_val_results_0417/batch_validation_results_20260419_053122.csv">Source evaluations ↗</a></footer>
+</body>
+</html>

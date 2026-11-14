@@ -6,6 +6,8 @@ An agricultural reinforcement learning research project for learning **irrigatio
 
 ## Results demo
 
+[Open the interactive FieldLab explorer](https://wuyang060826.github.io/llama_ppo_rnd_in_gymDssat/fieldlab/) to compare two checkpoints, switch metrics, inspect individual repeats, or export the selected rows. See the [prototype development guide](docs/fieldlab/DEVELOPMENT.md) for offline use and data regeneration.
+
 Run this from the repository root with Python 3.9+. It summarizes the archived checkpoint evaluations with no installed packages, model download, GPU, or simulator.
 
 ```bash
