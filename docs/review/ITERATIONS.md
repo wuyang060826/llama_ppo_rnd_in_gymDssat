@@ -151,3 +151,13 @@ Observed gap — Singleton rollouts yielded NaN normalization and cosine schedul
 Change — Extract training numerics and fix singleton normalization and learning-rate clamping.
 
 Verification — Four CPU tests pass for terminal masking, singleton finite values, empty buffers, and schedule floor.
+
+## Round 16
+
+Reference [GitHub project](https://github.com/Farama-Foundation/Gymnasium).
+
+Observed gap — Step-limited episodes could leak into the next rollout and exceptions left simulator resources open.
+
+Change — Reject incomplete episodes and close training and validation environments in finally blocks.
+
+Verification — Compiled the main entry and inspected exception boundaries. Full simulator execution still requires DSSAT.
