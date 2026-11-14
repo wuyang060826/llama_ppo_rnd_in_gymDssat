@@ -211,3 +211,7 @@ Observed gap — The computed decayed RND bonus was discarded and PPO used an un
 Change — Store collection-time scaled RND bonuses and preserve nonzero bonuses whose sum cancels.
 
 Verification — Thirteen Python tests pass, including schedule boundaries and cancelling bonuses. Full learning behavior still requires fresh simulator experiments.
+
+## CI follow-up
+
+The first hosted run exposed an environment dependency. The moving Ubuntu image had advanced to 26.04, where setup-python could not provision Python 3.9. The workflow now selects Ubuntu 22.04 explicitly and lets both matrix jobs finish independently.
