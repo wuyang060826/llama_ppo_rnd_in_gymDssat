@@ -51,3 +51,53 @@ Observed gap — Exports had identical filenames and no visible feedback.
 Change — Name exports by checkpoint pair and acknowledge download requests.
 
 Verification — CSV preserves raw precision and both series; all fields remain quoted.
+
+## Round 6
+
+Reference [GitHub project](https://github.com/gradio-app/gradio).
+
+Observed gap — Load failure offered explanatory text without a recovery action.
+
+Change — Provide reload and README fallback links on load failure.
+
+Verification — Failure path hides the workspace and reveals recovery; URL write failures leave the comparison usable.
+
+## Round 7
+
+Reference [GitHub project](https://github.com/plotly/plotly.js).
+
+Observed gap — Connected repeat points suggested a temporal trajectory and long tick values could collide.
+
+Change — Use separate repeat markers with compact axis labels.
+
+Verification — Marker values still match the full-precision data; exact values remain in the table and CSV.
+
+## Round 8
+
+Reference [GitHub project](https://github.com/chartjs/Chart.js).
+
+Observed gap — Additional controls lacked mobile styling and printing clipped the table.
+
+Change — Style search and feedback, expand CSS formatting, and add print layout.
+
+Verification — Checked existing 500px and 710px breakpoints; print rules remove scroll clipping and keep cards together.
+
+## Round 9
+
+Reference [GitHub project](https://github.com/apache/echarts).
+
+Observed gap — Charts had no way to inspect and locate a particular repeat.
+
+Change — Link repeat selection to point emphasis and table highlighting.
+
+Verification — Reviewed selection persistence across metric changes and reset; JavaScript syntax passes.
+
+## Round 10
+
+Reference [GitHub project](https://github.com/observablehq/plot).
+
+Observed gap — Means alone concealed the spread of repeated evaluations.
+
+Change — Expose observed metric ranges alongside selected means.
+
+Verification — Ranges are derived from selected raw repeats; no confidence or significance claim is inferred.
