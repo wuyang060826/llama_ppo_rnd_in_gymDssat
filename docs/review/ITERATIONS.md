@@ -11,3 +11,13 @@ Observed gap — The browser demo ended without a direct reproduction path.
 Change — Add a reproduction section and navigation entry.
 
 Verification — Checked command paths against scripts/demo_results.py and Python 3.9 syntax.
+
+## Round 2
+
+Reference [GitHub project](https://github.com/openrlbenchmark/openrlbenchmark).
+
+Observed gap — Visitors cannot immediately identify the evaluation batch or checkpoint meaning.
+
+Change — Expose archive date and simulator provenance beside the comparison.
+
+Verification — Date checked against source CSV filename and all checkpoint repeat counts checked during archive generation.
