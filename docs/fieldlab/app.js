@@ -171,7 +171,7 @@ function start(data) {
       row.append(key, ...rowMaps.map((map) => element("td", number(map.get(repeat)))));
       return row;
     }));
-    byId("status").textContent = `${label} comparison updated: ${state.a} and ${state.b}.`;
+    byId("status").textContent = "";
     redraw();
   }
 
@@ -210,8 +210,12 @@ function start(data) {
     const url = URL.createObjectURL(new Blob([lines.map((line) => line.map(csvCell).join(",")).join("\r\n") + "\r\n"], {type:"text/csv;charset=utf-8"}));
     const link = element("a");
     link.href = url;
-    link.download = "fieldlab-selected-evaluations.csv";
+    const state = read();
+    link.download = `fieldlab-${state.a}-vs-${state.b}.csv`;
+    document.body.append(link);
     link.click();
+    link.remove();
+    byId("status").textContent = "CSV download requested. All six metrics and both selected checkpoints are included.";
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
   byId("workspace").hidden = false;

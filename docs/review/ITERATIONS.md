@@ -41,3 +41,13 @@ Observed gap — Two selectors each contained 129 entries with no search.
 Change — Add checkpoint filtering while preserving selected policies.
 
 Verification — Reviewed zero-match, swap-after-filter, and reset-after-filter paths; JavaScript syntax passes.
+
+## Round 5
+
+Reference [GitHub project](https://github.com/streamlit/streamlit).
+
+Observed gap — Exports had identical filenames and no visible feedback.
+
+Change — Name exports by checkpoint pair and acknowledge download requests.
+
+Verification — CSV preserves raw precision and both series; all fields remain quoted.
