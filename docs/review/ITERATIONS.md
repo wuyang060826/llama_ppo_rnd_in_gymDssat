@@ -31,3 +31,13 @@ Observed gap — Metric switching left all visible summary cards fixed on agricu
 Change — Show selected-metric means and explicit same-checkpoint feedback.
 
 Verification — JavaScript syntax passes; mean uses the same selected rows as the repeat table.
+
+## Round 4
+
+Reference [GitHub project](https://github.com/aimhubio/aim).
+
+Observed gap — Two selectors each contained 129 entries with no search.
+
+Change — Add checkpoint filtering while preserving selected policies.
+
+Verification — Reviewed zero-match, swap-after-filter, and reset-after-filter paths; JavaScript syntax passes.

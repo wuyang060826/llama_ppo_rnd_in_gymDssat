@@ -175,13 +175,31 @@ function start(data) {
     redraw();
   }
 
+  byId("search").addEventListener("input", () => {
+    const query = byId("search").value.trim().toLowerCase();
+    const matches = checkpoints.filter(([id]) => id.toLowerCase().includes(query));
+    for (const key of ["a", "b"]) {
+      const current = controls[key].value;
+      const entries = matches.some(([id]) => id === current) ? matches : [[current, current + " (selected)"], ...matches];
+      options(controls[key], entries, current);
+    }
+    byId("search-result").textContent = query ?
+      `${matches.length} matching checkpoints. Current selections stay available.` : "";
+  });
   for (const select of Object.values(controls)) select.addEventListener("change", render);
   byId("swap").addEventListener("click", () => {
-    [controls.a.value, controls.b.value] = [controls.b.value, controls.a.value];
+    const state = read();
+    byId("search").value = "";
+    byId("search-result").textContent = "";
+    options(controls.a, checkpoints, state.b);
+    options(controls.b, checkpoints, state.a);
     render();
   });
   byId("reset").addEventListener("click", () => {
-    for (const [key, value] of Object.entries(defaults)) controls[key].value = value;
+    byId("search").value = "";
+    byId("search-result").textContent = "";
+    for (const key of ["a", "b"]) options(controls[key], checkpoints, defaults[key]);
+    controls.metric.value = defaults.metric;
     render();
   });
   byId("export").addEventListener("click", () => {
