@@ -171,3 +171,13 @@ Observed gap — Python, NumPy, and Torch RNGs were unseeded and run configurati
 Change — Seed training RNGs and persist run configuration and runtime versions.
 
 Verification — Seed range and fresh-directory checks reviewed; metadata is written before model loading. Determinism across hardware is not claimed.
+
+## Round 18
+
+Reference [GitHub project](https://github.com/pytorch/examples).
+
+Observed gap — Even --help imported CUDA and simulator dependencies on a fresh checkout.
+
+Change — Parse and validate CLI arguments before importing training dependencies.
+
+Verification — The normal script --help succeeds without Gym or Transformers; default episodes and seed verified through the parser.

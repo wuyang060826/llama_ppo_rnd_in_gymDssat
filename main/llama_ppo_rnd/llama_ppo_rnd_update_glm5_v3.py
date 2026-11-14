@@ -14,6 +14,13 @@ PPO + Chinese-LLaMA-2 + gym-dssat 渐进式泛化增强版
 - 论文Table 6证明：温度噪声(±2°C)影响最大(-11.9%)，其他噪声影响较小
 - 关键发现：适度噪声反而能提升泛化，但过度噪声会损害性能
 """
+if __name__ == "__main__":
+    if __package__:
+        from .cli import parse_args
+    else:
+        from cli import parse_args
+    args = parse_args()
+
 from reportlab.lib.units import inch
 import argparse
 import json
@@ -1301,26 +1308,13 @@ def train_ppo(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Train the LLaMA-PPO-RND Gym-DSSAT agent.")
-    parser.add_argument("--model", required=True, help="Hugging Face model ID or local model directory")
-    parser.add_argument("--dssat-runner", type=Path, default=Path("/opt/dssat_pdi/run_dssat"))
-    parser.add_argument("--output-dir", type=Path, required=True, help="New directory for this run")
-    parser.add_argument("--seed", type=int, default=123456, help="Training RNG and simulator seed")
-    parser.add_argument("--episodes", type=int, default=config.n_episodes)
-    args = parser.parse_args()
-    if not 0 <= args.seed < 2**32:
-        parser.error("--seed must be between 0 and 4294967295")
-    if args.episodes < 1:
-        parser.error("--episodes must be positive")
-    if not args.dssat_runner.is_file() or not os.access(args.dssat_runner, os.X_OK):
-        parser.error(f"DSSAT runner is not executable: {args.dssat_runner}")
     if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
-        parser.error("Training requires a CUDA GPU with BF16 support")
+        raise SystemExit("Training requires a CUDA GPU with BF16 support")
     args.output_dir = args.output_dir.resolve()
     try:
         args.output_dir.mkdir(parents=True, exist_ok=False)
         (args.output_dir / "logs").mkdir()
     except FileExistsError:
-        parser.error("Choose a fresh output directory for this run")
+        raise SystemExit("Choose a fresh output directory for this run")
     config.n_episodes = args.episodes
     train_ppo(args)
