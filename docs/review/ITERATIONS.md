@@ -181,3 +181,13 @@ Observed gap — Even --help imported CUDA and simulator dependencies on a fresh
 Change — Parse and validate CLI arguments before importing training dependencies.
 
 Verification — The normal script --help succeeds without Gym or Transformers; default episodes and seed verified through the parser.
+
+## Round 19
+
+Reference [GitHub project](https://github.com/actions/setup-python).
+
+Observed gap — The repository had no automatic regression gate for incoming changes.
+
+Change — Add Python-version CI coverage for the data, CLI, and CPU training checks.
+
+Verification — Eleven Python tests and three Node tests pass locally. CI executes the same suite on Python 3.9 and 3.12.
