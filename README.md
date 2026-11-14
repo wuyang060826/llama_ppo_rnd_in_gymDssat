@@ -4,7 +4,7 @@ An agricultural reinforcement learning research project for learning **irrigatio
 
 [![Checks](https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/actions/workflows/quality.yml/badge.svg)](https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/actions/workflows/quality.yml)
 
-[Results demo](#results-demo) · [Method](#method) · [Training](#training) · [Repository map](#repository-map)
+[Results demo](#results-demo) · [Interactive prototype](#interactive-prototype) · [Method](#method) · [Training](#training) · [Repository map](#repository-map)
 
 ## Results demo
 
@@ -37,6 +37,14 @@ These are historical simulator observations. Repeat numbers do not establish pai
 </details>
 
 [Compare any two checkpoints in FieldLab](https://wuyang060826.github.io/llama_ppo_rnd_in_gymDssat/fieldlab/) · [Prototype source and development guide](docs/fieldlab/DEVELOPMENT.md)
+
+## Interactive prototype
+
+Search checkpoints, compare six metrics, inspect individual repeats, and export the selected evaluations. The screenshot below shows the verified desktop interface.
+
+[![FieldLab checkpoint comparison with repeat inspection](docs/review/fieldlab-comparison.jpg)](https://wuyang060826.github.io/llama_ppo_rnd_in_gymDssat/fieldlab/)
+
+[Open FieldLab](https://wuyang060826.github.io/llama_ppo_rnd_in_gymDssat/fieldlab/) · [Verification record](docs/review/VALIDATION.md)
 
 ## Method
 
