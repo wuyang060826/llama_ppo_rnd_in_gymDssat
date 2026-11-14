@@ -191,3 +191,13 @@ Observed gap — The repository had no automatic regression gate for incoming ch
 Change — Add Python-version CI coverage for the data, CLI, and CPU training checks.
 
 Verification — Eleven Python tests and three Node tests pass locally. CI executes the same suite on Python 3.9 and 3.12.
+
+## Round 20
+
+Reference [GitHub project](https://github.com/scientific-python/cookie).
+
+Observed gap — Contributors lacked a layer map and could confuse historical experiments with supported checks.
+
+Change — Document implementation boundaries, demo walkthrough, regression commands, and research limits.
+
+Verification — README links, help entry, bundle consistency, and diff checks pass. Live browser verification is recorded after publication.
