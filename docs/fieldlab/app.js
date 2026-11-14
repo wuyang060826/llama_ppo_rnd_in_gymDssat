@@ -1,17 +1,10 @@
 "use strict";
 
 const byId = (id) => document.getElementById(id);
-const metrics = {
-  reward: ["Reward", "score"],
-  yield: ["Harvest yield", "kg/ha"],
-  irr: ["Irrigation", "mm"],
-  fert: ["Nitrogen", "kg/ha"],
-  wue: ["Water use efficiency", "kg/ha/mm"],
-  nue: ["Nitrogen use efficiency", "kg/kg"],
-};
+const metrics = FieldLab.metrics;
 const format = new Intl.NumberFormat("en", {maximumFractionDigits: 2});
 const number = (value) => value == null ? "—" : format.format(value);
-const mean = (rows, key) => rows.reduce((sum, row) => sum + row[key], 0) / rows.length;
+const mean = FieldLab.mean;
 
 function element(tag, text, className) {
   const node = document.createElement(tag);
@@ -25,7 +18,7 @@ function options(select, entries, initial) {
   select.value = initial;
 }
 
-function drawChart(canvas, series, repeats, key) {
+function drawChart(canvas, series, repeats, key, selectedRepeat) {
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
   if (!width || !height) return;
@@ -56,7 +49,7 @@ function drawChart(canvas, series, repeats, key) {
     context.moveTo(left, row);
     context.lineTo(right, row);
     context.stroke();
-    context.fillText(number(value), left - 7, row + 4);
+    context.fillText(new Intl.NumberFormat("en", {notation: "compact", maximumFractionDigits: 1}).format(value), left - 7, row + 4);
   }
 
   context.textAlign = "center";
@@ -70,17 +63,10 @@ function drawChart(canvas, series, repeats, key) {
     context.fillStyle = color;
     context.strokeStyle = color;
     context.lineWidth = 2;
-    context.beginPath();
-    rows.forEach((row, index) => {
-      const px = x(positions.get(row.repeat));
-      const py = y(row[key]);
-      if (index === 0) context.moveTo(px, py);
-      else context.lineTo(px, py);
-    });
-    context.stroke();
     for (const row of rows) {
       const px = x(positions.get(row.repeat));
       const py = y(row[key]);
+      context.globalAlpha = selectedRepeat && row.repeat !== selectedRepeat ? .3 : 1;
       if (label === "A") {
         context.beginPath();
         context.arc(px, py, 4, 0, Math.PI * 2);
@@ -90,6 +76,7 @@ function drawChart(canvas, series, repeats, key) {
       }
     }
   }
+  context.globalAlpha = 1;
 }
 
 function start(data) {
@@ -121,7 +108,7 @@ function start(data) {
   const redraw = () => {
     const state = read();
     const series = comparison(state);
-    drawChart(canvas, series, repeatIds(series), state.metric);
+    drawChart(canvas, series, repeatIds(series), state.metric, Number(byId("repeat").value));
   };
 
   function render() {
@@ -131,9 +118,18 @@ function start(data) {
     if (location.protocol !== "file:") {
       const url = new URL(location.href);
       for (const [key, value] of Object.entries(state)) url.searchParams.set(key, value);
-      history.replaceState(null, "", url);
+      try {
+        history.replaceState(null, "", url);
+      } catch {
+        byId("status").textContent = "The browser could not save the selection in the address. Comparison and export remain available.";
+      }
     }
 
+    byId("comparison-note").textContent = state.a === state.b ?
+      "Both selections refer to the same checkpoint. Choose another checkpoint to compare policies." :
+      `A · ${state.a} compared with B · ${state.b}`;
+    byId("metric-stats").replaceChildren(...series.map(({id, label: side, rows}) =>
+      element("p", `${side} · ${id} — mean ${number(mean(rows, state.metric))} ${unit}; range ${number(Math.min(...rows.map((row) => row[state.metric])))}–${number(Math.max(...rows.map((row) => row[state.metric])))} ${unit}`)));
     byId("summary").replaceChildren(...["yield", "irr", "fert"].map((key) => {
       const [name, units] = metrics[key];
       const averages = series.map(({rows}) => mean(rows, key));
@@ -166,29 +162,66 @@ function start(data) {
       row.append(key, ...rowMaps.map((map) => element("td", number(map.get(repeat)))));
       return row;
     }));
-    byId("status").textContent = `${label} comparison updated: ${state.a} and ${state.b}.`;
-    redraw();
+
+    const repeats = repeatIds(series);
+    const selected = byId("repeat").value;
+    options(byId("repeat"), [["", "All repeats"], ...repeats.map((repeat) => [String(repeat), String(repeat)])],
+      repeats.includes(Number(selected)) ? selected : "");
+    inspectRepeat();
   }
 
+  function inspectRepeat() {
+    const state = read();
+    const repeat = Number(byId("repeat").value);
+    const [label, unit] = metrics[state.metric];
+    byId("point-detail").textContent = repeat ? comparison(state).map(({label: side, rows}) =>
+      `${side} · repeat ${repeat}: ${number(rows.find((row) => row.repeat === repeat)?.[state.metric])} ${unit}`).join(" · ") :
+      `${label}: all archived repeats`;
+    for (const row of byId("observations").children) {
+      row.classList.toggle("selected-repeat", Number(row.firstChild.textContent) === repeat);
+    }
+    redraw();
+  }
+  byId("repeat").addEventListener("change", inspectRepeat);
+
+  byId("search").addEventListener("input", () => {
+    const query = byId("search").value.trim().toLowerCase();
+    const matches = checkpoints.filter(([id]) => id.toLowerCase().includes(query));
+    for (const key of ["a", "b"]) {
+      const current = controls[key].value;
+      const entries = matches.some(([id]) => id === current) ? matches : [[current, current + " (selected)"], ...matches];
+      options(controls[key], entries, current);
+    }
+    byId("search-result").textContent = query ?
+      `${matches.length} matching checkpoints. Current selections stay available.` : "";
+  });
   for (const select of Object.values(controls)) select.addEventListener("change", render);
   byId("swap").addEventListener("click", () => {
-    [controls.a.value, controls.b.value] = [controls.b.value, controls.a.value];
+    const state = read();
+    byId("search").value = "";
+    byId("search-result").textContent = "";
+    options(controls.a, checkpoints, state.b);
+    options(controls.b, checkpoints, state.a);
     render();
   });
   byId("reset").addEventListener("click", () => {
-    for (const [key, value] of Object.entries(defaults)) controls[key].value = value;
+    byId("search").value = "";
+    byId("search-result").textContent = "";
+    for (const key of ["a", "b"]) options(controls[key], checkpoints, defaults[key]);
+    controls.metric.value = defaults.metric;
+    byId("repeat").value = "";
     render();
   });
   byId("export").addEventListener("click", () => {
-    const csvCell = (value) => '"' + String(value).replaceAll('"', '""') + '"';
-    const keys = Object.keys(metrics);
-    const lines = [["side", "checkpoint", "repeat", ...keys], ...comparison(read()).flatMap(({id, label, rows}) =>
-      rows.map((row) => [label, id, row.repeat, ...keys.map((key) => row[key])]))];
-    const url = URL.createObjectURL(new Blob([lines.map((line) => line.map(csvCell).join(",")).join("\r\n") + "\r\n"], {type:"text/csv;charset=utf-8"}));
+    const url = URL.createObjectURL(new Blob([FieldLab.toCsv(comparison(read()))], {type:"text/csv;charset=utf-8"}));
     const link = element("a");
     link.href = url;
-    link.download = "fieldlab-selected-evaluations.csv";
+    const state = read();
+    link.download = `fieldlab-${state.a}-vs-${state.b}.csv`;
+    document.body.append(link);
     link.click();
+    link.remove();
+    byId("status").textContent = "CSV download requested. All six metrics and both selected checkpoints are included.";
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
   byId("workspace").hidden = false;
@@ -197,10 +230,11 @@ function start(data) {
 }
 
 try {
-  if (!window.FIELDLAB_DATA?.length) throw new Error("Evaluation data is unavailable");
+  FieldLab.validate(window.FIELDLAB_DATA);
   start(window.FIELDLAB_DATA);
 } catch (error) {
   byId("workspace").hidden = true;
   byId("error").textContent = "The explorer could not load. Check that data.js is beside index.html, or use the repository’s Python results demo.";
+  byId("recovery").hidden = false;
   console.error(error);
 }

@@ -22,36 +22,44 @@ Open http://localhost:8000/fieldlab/. The Python builder converts the archived C
 | [RL Baselines3 Zoo](https://github.com/DLR-RM/rl-baselines3-zoo) | Keep archived evaluation browsing distinct from the training entry point. |
 | [CleanRL](https://github.com/vwxyzjn/cleanrl) | Keep setup commands and experiment lineage visible in the repository. |
 
-## Acceptance checklist
+## Implementation map
 
-| # | Check |
-| ---: | --- |
-| 1 | Page title and project identity |
-| 2 | Checkpoint and row counts match the archive |
-| 3 | All checkpoints selectable |
-| 4 | Curated defaults restored on first open |
-| 5 | Mean values match the CSV |
-| 6 | Repeat table matches the selected pair |
-| 7 | Six metrics selectable |
-| 8 | Axis metric and units stay synchronized |
-| 9 | Table updates when metric changes |
-| 10 | Swap reverses A and B |
-| 11 | Same checkpoint shows zero mean difference |
-| 12 | URL encodes current selection on HTTP |
-| 13 | Reload restores selection |
-| 14 | Reset restores default pair and metric |
-| 15 | CSV includes both series and full precision |
-| 16 | Unknown query values fall back to defaults |
-| 17 | Keyboard users can skip to the workspace |
-| 18 | Interpretation and limitations can be expanded |
-| 19 | Mobile content stays within viewport |
-| 20 | Reduced motion is respected and browser has no uncaught errors |
+| Layer | Entry | Responsibility |
+| --- | --- | --- |
+| Research | `main/llama_ppo_rnd/llama_ppo_rnd_update_glm5_v3.py` | Model, environment, training, validation, metrics |
+| Arguments | `main/llama_ppo_rnd/cli.py` | Dependency-free help and input validation |
+| Numerics | `main/llama_ppo_rnd/training_core.py` | PPO rollout buffer, GAE, and learning-rate schedule |
+| Archive | `scripts/fieldlab_data.py` | CSV schema and numeric validation |
+| Browser data | `docs/fieldlab/model.js` | Validation, means, CSV serialization |
+| Browser view | `docs/fieldlab/app.js` | Selection, rendering, URL state, downloads |
+| Regression | `tests/` | CPU numerical, input, CLI, and export checks |
 
-## Code boundaries
+The historical `main/` variants and `test/val_proj/` evaluation scripts retain their existing entry paths. Automated regressions use `tests/`. The active training entry accepts model and output paths from the command line.
 
-- `scripts/fieldlab_data.py` is the shared CSV validation and loading layer for demos and generated assets.
-- `scripts/build_fieldlab.py` creates the offline browser bundle. `scripts/plot_fieldlab.py` creates the README figure with Matplotlib.
-- `docs/index.html` is the Pages root entry. `docs/fieldlab/` contains the browser UI.
-- `main/` holds research implementations. `test/val_proj/` contains historical evaluation scripts and outputs. When running automated tests, target a dedicated test file instead of collecting legacy experiment scripts.
+## Demo walkthrough
 
-The README presents a chart, exact values, and a collapsible reproduction path, following the data and reproducibility emphasis of [Open RL Benchmark](https://github.com/openrlbenchmark/openrlbenchmark) and [CleanRL](https://github.com/vwxyzjn/cleanrl).
+1. Open the [README](../../README.md#results-demo) and explain the archived two-policy comparison.
+2. Open [FieldLab](https://wuyang060826.github.io/llama_ppo_rnd_in_gymDssat/fieldlab/), switch the metric to irrigation, and inspect an individual repeat.
+3. Search for an episode number to choose a different checkpoint.
+4. Swap A and B to inspect direction of differences, then reset.
+5. Download the selected raw observations or share the current URL.
+6. Use the reproduction section to transition from the demo into development.
+
+## Checks
+
+```sh
+python -m unittest discover -s tests -p 'test_*.py'
+node --test tests/fieldlab.test.cjs
+python scripts/build_fieldlab.py --check
+python main/llama_ppo_rnd/llama_ppo_rnd_update_glm5_v3.py --help
+```
+
+Python tests require NumPy and CPU-compatible PyTorch. Node 20+ runs the browser data tests without packages. The [workflow](../../.github/workflows/quality.yml) runs the suite on Python 3.9 and 3.12.
+
+The [iteration log](../review/ITERATIONS.md) records 21 implementation rounds and 21 reference repositories. `archive.json` records the source path, SHA-256 fingerprint, dimensions, and units. Update the CSV first and regenerate `data.js` and `archive.json` together. Recreate the README figure with `python scripts/plot_fieldlab.py`, which additionally requires Matplotlib.
+
+## Research verification scope
+
+CPU regressions verify buffer terminal masking, single-transition normalization, and the learning-rate floor. CLI tests run the normal training script's help and validate arguments. Full CUDA + DSSAT + LLaMA training remains unverified in this environment. Training now seeds its RNGs, records configuration, closes simulator resources after exceptions, and rejects unfinished episodes at the configured step limit.
+
+Further research validation should cover the terminal observation schema, exact learning-rate update counts, and checkpoint resumption. Existing checkpoints contain model and optimizer weights. A complete resume workflow still needs scheduler, RND, RNG, and environment-state handling.

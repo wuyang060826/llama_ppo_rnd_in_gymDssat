@@ -8,12 +8,13 @@
 <title>FieldLab · Crop policy explorer</title>
 <link rel="stylesheet" href="style.css">
 <script defer src="data.js"></script>
+<script defer src="model.js"></script>
 <script defer src="app.js"></script>
 </head>
 <body>
 <a class="skip" href="#explore">Skip to explorer</a>
 <header>
-<nav aria-label="Main navigation"><a class="brand" href="#">◈ FieldLab</a><div><a href="#explore">Explore</a><a href="#method">Method</a><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat">GitHub ↗</a></div></nav>
+<nav aria-label="Main navigation"><a class="brand" href="#">◈ FieldLab</a><div><a href="#explore">Explore</a><a href="#method">Method</a><a href="#reproduce">Reproduce</a><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat">GitHub ↗</a></div></nav>
 <div class="hero">
 <p class="eyebrow">GYM-DSSAT RESEARCH DEMO</p>
 <h1>How does a crop<br>policy <em>trade off?</em></h1>
@@ -25,8 +26,12 @@
 <section id="explore" aria-labelledby="explore-title">
 <div class="section-head"><div><p class="eyebrow">ARCHIVED EVALUATIONS</p><h2 id="explore-title">Compare policies</h2></div><p id="dataset"></p></div>
 <noscript><p>Enable JavaScript to use the explorer. The repository also offers a Python results demo.</p></noscript>
-<p id="error" role="alert"></p>
+<p class="provenance">Archive · 19 April 2026 · Gym-DSSAT simulation · 10 repeats per checkpoint</p>
+<div id="error" role="alert"></div>
+<p id="recovery" hidden><a href="./">Reload the explorer</a> · <a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat#results-demo">View the README results</a></p>
 <div id="workspace" hidden>
+<label class="search-label">Find a checkpoint<input id="search" type="search" placeholder="Type an episode number, e.g. 1256" aria-describedby="search-result"></label>
+<p id="search-result" role="status"></p>
 <div class="controls">
 <label>Checkpoint A<select id="a"></select></label>
 <label>Checkpoint B<select id="b"></select></label>
@@ -34,19 +39,30 @@
 <button id="swap" type="button">Swap A / B</button>
 <button id="reset" type="button">Reset</button>
 </div>
-<p id="status" class="sr" role="status"></p>
+<p id="status" class="feedback" role="status"></p>
+<p id="comparison-note" role="status"></p>
 <div id="summary" class="summary"></div>
+<div id="metric-stats" class="metric-stats"></div>
 <div class="panels">
-<article class="panel"><h3 id="chartTitle"></h3><p class="muted">One point per archived repeat. Lines connect points in repeat-number order.</p><div id="chart"></div><div id="legend"></div></article>
+<article class="panel"><h3 id="chartTitle"></h3><p class="muted">Each point is one archived repeat. Repeat numbers identify independent evaluations within each checkpoint.</p><label class="repeat-label">Inspect repeat<select id="repeat"></select></label><p id="point-detail" role="status"></p><div id="chart"></div><div id="legend"></div></article>
 <article class="panel"><h3>Repeat-level data</h3><p class="muted">Compare the selected metric across the recorded repeats.</p><div class="table-wrap"><table><thead id="columns"></thead><tbody id="observations"></tbody></table></div><button id="export" type="button">Download selected CSV</button></article>
 </div>
-<details><summary>How to read this comparison</summary><p>Cards show arithmetic means. Differences use B minus A. Repeat numbers are archival labels and do not establish paired weather seeds. The selected checkpoints illustrate a trade-off in this batch. Baseline comparisons, confidence intervals, and field validation require additional evidence.</p></details>
+<details><summary>How to read this comparison</summary><p>Cards show arithmetic means. Differences use B minus A. Repeat numbers are archival labels and do not establish paired weather seeds. Checkpoint IDs refer to saved training episodes. The default pair illustrates a trade-off in this batch. Baseline comparisons, confidence intervals, and field validation require additional evidence.</p></details>
 </div>
 </section>
 <section id="method" aria-labelledby="method-title">
 <p class="eyebrow">EXPERIMENT DESIGN</p><h2 id="method-title">From observation to action</h2>
 <ol class="method"><li><h3>Observe</h3><p>Gym-DSSAT simulates crop growth and supplies numerical field observations.</p></li><li><h3>Encode</h3><p>LLaMA encodes observations serialized as text for the PPO actor–critic.</p></li><li><h3>Act</h3><p>The policy selects irrigation and nitrogen levels. RND adds an exploration reward during training.</p></li></ol>
 <a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/README.md#training">Read the training instructions ↗</a>
+</section>
+<section id="reproduce" aria-labelledby="reproduce-title">
+<p class="eyebrow">FROM DEMO TO EXPERIMENT</p><h2 id="reproduce-title">Reproduce the evidence</h2>
+<p>Explore the archive in your browser, regenerate the summary with Python, then follow the training guide to run your own experiment.</p>
+<pre><code>git clone https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat.git
+cd llama_ppo_rnd_in_gymDssat
+python scripts/demo_results.py</code></pre>
+<p>The archive summary uses Python 3.9+ with the standard library. Training additionally requires CUDA, DSSAT-PDI, and compatible model weights.</p>
+<a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/docs/fieldlab/DEVELOPMENT.md">Open the development guide ↗</a>
 </section>
 </main>
 <footer><span>FieldLab · LLaMA-PPO-RND for Gym-DSSAT</span><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/test/val_proj/batch_val_results_0417/batch_validation_results_20260419_053122.csv">Source evaluations ↗</a></footer>

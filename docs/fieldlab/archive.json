@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "source": "test/val_proj/batch_val_results_0417/batch_validation_results_20260419_053122.csv",
+  "sha256": "fadcf186fb2fb1d32383b1f62bd3a3cb0dcab2d0ff9710a22694b2953b29e28d",
+  "checkpoints": 129,
+  "evaluations": 1290,
+  "units": {
+    "reward": "score",
+    "yield": "kg/ha",
+    "irr": "mm",
+    "fert": "kg/ha",
+    "wue": "kg/ha/mm",
+    "nue": "kg/kg"
+  }
+}

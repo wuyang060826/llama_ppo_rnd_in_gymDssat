@@ -2,6 +2,8 @@
 
 An agricultural reinforcement learning research project for learning **irrigation and nitrogen fertilization policies** in the DSSAT crop simulator. The main experiment combines a LLaMA state encoder, PPO, Random Network Distillation (RND), and progressive observation augmentation.
 
+[![Checks](https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/actions/workflows/quality.yml/badge.svg)](https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/actions/workflows/quality.yml)
+
 [Results demo](#results-demo) · [Method](#method) · [Training](#training) · [Repository map](#repository-map)
 
 ## Results demo
@@ -80,6 +82,8 @@ The main entry point uses the legacy Gym API and requires a Linux environment wi
      --episodes 1
    ```
 
+Use `--seed` to set the training RNG and simulator seed. Each run records its arguments, configuration, and Python/PyTorch/NumPy versions in `run.json`. Validation uses the fixed seed set defined in the main script.
+
 For the configured 2,000-episode experiment, omit `--episodes` and choose a fresh output directory. The run writes simulator logs, metric exports, and qualifying checkpoints under that directory. A one-episode run checks setup and runs final validation. PPO updates and checkpoint saves depend on thresholds in the training script. This environment setup has not been verified end to end.
 
 ## Repository map
@@ -92,6 +96,22 @@ For the configured 2,000-episode experiment, omit `--episodes` and choose a fres
 | [test/val_proj](test/val_proj) | Historical checkpoint evaluation scripts and outputs. Some scripts use experiment-specific local paths. |
 | [test/LM_AG-main](test/LM_AG-main) | Upstream reference notebooks and assets from [LM_AG](https://github.com/jingwu6/LM_AG). |
 | [scripts/demo_results.py](scripts/demo_results.py) | Dependency-free demo of the checked-in validation data. |
+| [scripts/fieldlab_data.py](scripts/fieldlab_data.py) | Shared archive validation for the CLI, browser bundle, and README figure. |
+| [docs/fieldlab](docs/fieldlab) | Interactive UI, data model, generated archive, and development guide. |
+| [main/llama_ppo_rnd/training_core.py](main/llama_ppo_rnd/training_core.py) | CPU-testable rollout buffer and learning-rate schedule. |
+| [tests](tests) | Focused regressions for numerical behavior, data integrity, exports, and training CLI. |
+
+## Development
+
+```bash
+python -m unittest discover -s tests -p 'test_*.py'
+node --test tests/fieldlab.test.cjs
+python scripts/build_fieldlab.py --check
+```
+
+Python regressions require NumPy and PyTorch. The Node tests use the built-in test runner in Node 20+. CI checks Python 3.9 and 3.12 using CPU PyTorch. See the [20-round review record](docs/review/ITERATIONS.md) and [development guide](docs/fieldlab/DEVELOPMENT.md) for design references and verification scope.
+
+The active training script now fails explicitly when an episode hits its step limit before termination, preventing incomplete episodes from entering reported harvest metrics. The numerical fixes require fresh experiments before comparing new results with the historical archive.
 
 ## References and reuse
 
