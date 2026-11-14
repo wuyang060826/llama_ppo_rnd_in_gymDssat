@@ -161,3 +161,13 @@ Observed gap — Step-limited episodes could leak into the next rollout and exce
 Change — Reject incomplete episodes and close training and validation environments in finally blocks.
 
 Verification — Compiled the main entry and inspected exception boundaries. Full simulator execution still requires DSSAT.
+
+## Round 17
+
+Reference [GitHub project](https://github.com/thu-ml/tianshou).
+
+Observed gap — Python, NumPy, and Torch RNGs were unseeded and run configuration was not saved.
+
+Change — Seed training RNGs and persist run configuration and runtime versions.
+
+Verification — Seed range and fresh-directory checks reviewed; metadata is written before model loading. Determinism across hardware is not claimed.

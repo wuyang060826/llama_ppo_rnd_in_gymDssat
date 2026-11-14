@@ -16,6 +16,9 @@ PPO + Chinese-LLaMA-2 + gym-dssat 渐进式泛化增强版
 """
 from reportlab.lib.units import inch
 import argparse
+import json
+import platform
+from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
@@ -1147,12 +1150,24 @@ def train_ppo(args):
     print("  Phase 2 (40-60%):   Gradually increase augmentation")
     print("  Phase 3 (60-100%):  Full augmentation - maximize generalization")
 
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
+    metadata = {
+        "config": asdict(config),
+        "arguments": {key: str(value) if isinstance(value, Path) else value for key, value in vars(args).items()},
+        "versions": {"python": platform.python_version(), "torch": torch.__version__, "numpy": np.__version__},
+        "validation_policy": "stochastic",
+    }
+    (args.output_dir / "run.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
     llama_model, tokenizer = initialize_llama(args.model, config.use_bf16)
 
     env_args = {
         'run_dssat_location': str(args.dssat_runner),
         'log_saving_path': str(args.output_dir / "logs" / "dssat-train.log"),
-        'mode': 'all', 'seed': 123456, 'random_weather': True
+        'mode': 'all', 'seed': args.seed, 'random_weather': True
     }
     env = gym.make('gym_dssat_pdi:GymDssatPdi-v0', **env_args)
 
@@ -1290,8 +1305,11 @@ if __name__ == "__main__":
     parser.add_argument("--model", required=True, help="Hugging Face model ID or local model directory")
     parser.add_argument("--dssat-runner", type=Path, default=Path("/opt/dssat_pdi/run_dssat"))
     parser.add_argument("--output-dir", type=Path, required=True, help="New directory for this run")
+    parser.add_argument("--seed", type=int, default=123456, help="Training RNG and simulator seed")
     parser.add_argument("--episodes", type=int, default=config.n_episodes)
     args = parser.parse_args()
+    if not 0 <= args.seed < 2**32:
+        parser.error("--seed must be between 0 and 4294967295")
     if args.episodes < 1:
         parser.error("--episodes must be positive")
     if not args.dssat_runner.is_file() or not os.access(args.dssat_runner, os.X_OK):
@@ -1300,7 +1318,8 @@ if __name__ == "__main__":
         parser.error("Training requires a CUDA GPU with BF16 support")
     args.output_dir = args.output_dir.resolve()
     try:
-        (args.output_dir / "logs").mkdir(parents=True, exist_ok=False)
+        args.output_dir.mkdir(parents=True, exist_ok=False)
+        (args.output_dir / "logs").mkdir()
     except FileExistsError:
         parser.error("Choose a fresh output directory for this run")
     config.n_episodes = args.episodes
