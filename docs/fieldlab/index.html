@@ -13,7 +13,7 @@
 <body>
 <a class="skip" href="#explore">Skip to explorer</a>
 <header>
-<nav aria-label="Main navigation"><a class="brand" href="#">◈ FieldLab</a><div><a href="#explore">Explore</a><a href="#method">Method</a><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat">GitHub ↗</a></div></nav>
+<nav aria-label="Main navigation"><a class="brand" href="#">◈ FieldLab</a><div><a href="#explore">Explore</a><a href="#method">Method</a><a href="#reproduce">Reproduce</a><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat">GitHub ↗</a></div></nav>
 <div class="hero">
 <p class="eyebrow">GYM-DSSAT RESEARCH DEMO</p>
 <h1>How does a crop<br>policy <em>trade off?</em></h1>
@@ -47,6 +47,15 @@
 <p class="eyebrow">EXPERIMENT DESIGN</p><h2 id="method-title">From observation to action</h2>
 <ol class="method"><li><h3>Observe</h3><p>Gym-DSSAT simulates crop growth and supplies numerical field observations.</p></li><li><h3>Encode</h3><p>LLaMA encodes observations serialized as text for the PPO actor–critic.</p></li><li><h3>Act</h3><p>The policy selects irrigation and nitrogen levels. RND adds an exploration reward during training.</p></li></ol>
 <a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/README.md#training">Read the training instructions ↗</a>
+</section>
+<section id="reproduce" aria-labelledby="reproduce-title">
+<p class="eyebrow">FROM DEMO TO EXPERIMENT</p><h2 id="reproduce-title">Reproduce the evidence</h2>
+<p>Explore the archive in your browser, regenerate the summary with Python, then follow the training guide to run your own experiment.</p>
+<pre><code>git clone https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat.git
+cd llama_ppo_rnd_in_gymDssat
+python scripts/demo_results.py</code></pre>
+<p>The archive summary uses Python 3.9+ with the standard library. Training additionally requires CUDA, DSSAT-PDI, and compatible model weights.</p>
+<a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/docs/fieldlab/DEVELOPMENT.md">Open the development guide ↗</a>
 </section>
 </main>
 <footer><span>FieldLab · LLaMA-PPO-RND for Gym-DSSAT</span><a href="https://github.com/wuyang060826/llama_ppo_rnd_in_gymDssat/blob/main/test/val_proj/batch_val_results_0417/batch_validation_results_20260419_053122.csv">Source evaluations ↗</a></footer>
