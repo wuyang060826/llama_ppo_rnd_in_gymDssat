@@ -70,9 +70,9 @@ if torch.cuda.is_available():
 from transformers import LlamaModel, LlamaTokenizerFast
 
 if __package__:
-    from .training_core import CosineAnnealingWarmup, Trajectory, PPOBuffer
+    from .training_core import CosineAnnealingWarmup, Trajectory, PPOBuffer, intrinsic_decay
 else:
-    from training_core import CosineAnnealingWarmup, Trajectory, PPOBuffer
+    from training_core import CosineAnnealingWarmup, Trajectory, PPOBuffer, intrinsic_decay
 
 
 # ============================================================================
@@ -467,7 +467,8 @@ class RunningMeanStd:
 
 
 class RNDModule:
-    def __init__(self, state_size, hidden_size=128, lr=1e-4):
+    def __init__(self, state_size, hidden_size=128, lr=1e-4, config=None):
+        self.config = config if config is not None else PPOConfig()
         self.target_network = RNDNetwork(state_size, hidden_size).to(device)
         self.predictor_network = RNDNetwork(state_size, hidden_size).to(device)
 
@@ -478,7 +479,7 @@ class RNDModule:
 
         self.state_visit_counts = {}
         self.total_states_explored = 0
-        self.exploration_threshold = config.rnd_threshold
+        self.exploration_threshold = self.config.rnd_threshold
         self.intrinsic_rms = RunningMeanStd()
 
     def discretize_state(self, state):
@@ -533,16 +534,12 @@ class RNDModule:
         self.intrinsic_rms.update(np.array([raw_intrinsic]))
         normalized_intrinsic = self.intrinsic_rms.normalize(raw_intrinsic)
 
-        progress = current_episode / total_episodes
-        if progress < config.intrinsic_decay_start:
-            decay_coef = 1.0
-        elif progress > config.intrinsic_decay_end:
-            decay_coef = 0.0
-        else:
-            decay_progress = (progress - config.intrinsic_decay_start) / (config.intrinsic_decay_end - config.intrinsic_decay_start)
-            decay_coef = 1.0 - decay_progress
-
-        scaled_intrinsic = normalized_intrinsic * config.intrinsic_coef * decay_coef * config.intrinsic_reward_scale
+        decay_coef = intrinsic_decay(
+            current_episode / total_episodes,
+            self.config.intrinsic_decay_start,
+            self.config.intrinsic_decay_end,
+        )
+        scaled_intrinsic = normalized_intrinsic * self.config.intrinsic_coef * decay_coef * self.config.intrinsic_reward_scale
 
         return scaled_intrinsic, normalized_intrinsic, decay_coef
 
@@ -909,7 +906,7 @@ class PPOAgent:
         self.scaler = torch.cuda.amp.GradScaler(enabled=not config.use_bf16)
         self.buffer = PPOBuffer(config.gamma, config.gae_lambda, device)
         self.inference_cache = {}
-        self.rnd = RNDModule(config.state_size)
+        self.rnd = RNDModule(config.state_size, config=config)
 
     def tokenize(self, texts):
         return self.tokenizer(texts, return_tensors='pt', padding='max_length',
@@ -956,12 +953,8 @@ class PPOAgent:
         self.actor_critic.train()
 
         use_intrinsic = self.config.use_rnd_intrinsic
-        intrinsic_coef = self.config.intrinsic_coef
-
-        if use_intrinsic and total_episodes is not None:
-            progress = current_episode / total_episodes
-            if progress > config.intrinsic_decay_end:
-                use_intrinsic = False
+        # Each stored bonus already includes the collection-time exploration schedule.
+        intrinsic_coef = 1.0
 
         advantages, returns = self.buffer.compute_gae_and_normalize(
             last_value, use_intrinsic=use_intrinsic, intrinsic_coef=intrinsic_coef
@@ -1226,7 +1219,7 @@ def train_ppo(args):
                         augmented_state, episode, config.n_episodes
                     )
                     agent.buffer.add(augmented_state, action, reward, next_state, done, log_prob, value,
-                                   array2str(augmented_state), intrinsic_reward=norm_intrinsic)
+                                   array2str(augmented_state), intrinsic_reward=scaled_intrinsic)
                 else:
                     agent.buffer.add(augmented_state, action, reward, next_state, done, log_prob, value,
                                    array2str(augmented_state))

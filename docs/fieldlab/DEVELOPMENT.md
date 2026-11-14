@@ -56,10 +56,10 @@ python main/llama_ppo_rnd/llama_ppo_rnd_update_glm5_v3.py --help
 
 Python tests require NumPy and CPU-compatible PyTorch. Node 20+ runs the browser data tests without packages. The [workflow](../../.github/workflows/quality.yml) runs the suite on Python 3.9 and 3.12.
 
-The [iteration log](../review/ITERATIONS.md) records 20 implementation rounds and 20 reference repositories. `archive.json` records the source path, SHA-256 fingerprint, dimensions, and units. Update the CSV first and regenerate `data.js` and `archive.json` together. Recreate the README figure with `python scripts/plot_fieldlab.py`, which additionally requires Matplotlib.
+The [iteration log](../review/ITERATIONS.md) records 21 implementation rounds and 21 reference repositories. `archive.json` records the source path, SHA-256 fingerprint, dimensions, and units. Update the CSV first and regenerate `data.js` and `archive.json` together. Recreate the README figure with `python scripts/plot_fieldlab.py`, which additionally requires Matplotlib.
 
 ## Research verification scope
 
 CPU regressions verify buffer terminal masking, single-transition normalization, and the learning-rate floor. CLI tests run the normal training script's help and validate arguments. Full CUDA + DSSAT + LLaMA training remains unverified in this environment. Training now seeds its RNGs, records configuration, closes simulator resources after exceptions, and rejects unfinished episodes at the configured step limit.
 
-Further research validation should cover the terminal observation schema, the RND decay coefficient reaching the PPO objective, exact learning-rate update counts, and checkpoint resumption. Existing checkpoints contain model and optimizer weights. A complete resume workflow still needs scheduler, RND, RNG, and environment-state handling.
+Further research validation should cover the terminal observation schema, exact learning-rate update counts, and checkpoint resumption. Existing checkpoints contain model and optimizer weights. A complete resume workflow still needs scheduler, RND, RNG, and environment-state handling.

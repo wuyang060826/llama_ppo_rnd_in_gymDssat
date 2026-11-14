@@ -92,7 +92,7 @@ class PPOBuffer:
 
         returns = advantages_ext + values_t
 
-        if use_intrinsic and intrinsic_coef > 0 and int_rewards.sum() != 0:
+        if use_intrinsic and intrinsic_coef > 0 and np.any(int_rewards != 0):
             advantages_int = torch.zeros(n, dtype=torch.float32, device=self.device)
             gae_int = 0.0
 
@@ -118,3 +118,10 @@ class PPOBuffer:
         indices = np.random.permutation(len(self.trajectories))
         return [indices[start:start + batch_size] for start in range(0, len(self.trajectories), batch_size)]
 
+
+
+def intrinsic_decay(progress, start, end):
+    """Linear exploration schedule, clamped to the configured interval."""
+    if not 0 <= start < end <= 1:
+        raise ValueError("Intrinsic decay requires 0 <= start < end <= 1")
+    return min(1.0, max(0.0, (end - progress) / (end - start)))

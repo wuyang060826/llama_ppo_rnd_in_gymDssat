@@ -201,3 +201,13 @@ Observed gap — Contributors lacked a layer map and could confuse historical ex
 Change — Document implementation boundaries, demo walkthrough, regression commands, and research limits.
 
 Verification — README links, help entry, bundle consistency, and diff checks pass. Live browser verification is recorded after publication.
+
+## Round 21
+
+Reference [GitHub project](https://github.com/openai/random-network-distillation).
+
+Observed gap — The computed decayed RND bonus was discarded and PPO used an undecayed normalized bonus.
+
+Change — Store collection-time scaled RND bonuses and preserve nonzero bonuses whose sum cancels.
+
+Verification — Thirteen Python tests pass, including schedule boundaries and cancelling bonuses. Full learning behavior still requires fresh simulator experiments.
